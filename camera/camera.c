@@ -7,6 +7,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+/***************************************************************************
+* @brief : 摄像头初始化，进行参数配置，申请缓冲区
+* @param : const char* camera_path：设备路径
+*          const CameraConfig* config：摄像头参数配置，NULL参数表示默认
+*          CameraDevice *out_dev：相机设备结构体，存储相机分配到的资源信息
+* @return: CameraError 错误码
+* @date  : 2025.5.25
+* @author: sushizhou
+****************************************************************************/
 CameraError CameraInit(const char* camera_path, const CameraConfig* config, CameraDevice *out_dev) 
 {
     if (camera_path == NULL || out_dev == NULL) return kErrorInvalidArgument;
@@ -144,6 +153,14 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     return kOk;
 }
 
+/***************************************************************************
+* @brief  : 启动视频流采集，开始摄像头连续帧捕获
+* @param  : int device_fd - 已初始化的摄像头设备文件描述符
+* @return : CameraError - 错误码
+* @date   : 2025.5.25
+* @author : sushizhou
+* @note   : 需在CameraInit成功后调用，与CameraStopCapture配对使用
+****************************************************************************/
 CameraError CameraStartCapture(int device_fd)
 {
     // (3)开始采集
@@ -158,6 +175,17 @@ CameraError CameraStartCapture(int device_fd)
     return kOk;
 }
 
+/***************************************************************************
+* @brief  : 捕获单帧图像并保存到指定路径
+* @param  : CameraDevice *dev - 已初始化的摄像头设备结构体指针
+*           const char *output_path - 图像保存路径（需确保目录存在）
+* @return : CameraError - 错误码
+* @date   : 2025.5.25
+* @author : sushizhou
+* @note   : 1.需在CameraStartCapture之后调用
+*           2.会自动完成缓冲区出队->保存->重新入队流程
+*           3.支持JPEG/MJPEG等常见格式
+****************************************************************************/
 CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path)//采集图片
 {
     if (dev == NULL || output_path == NULL) 
