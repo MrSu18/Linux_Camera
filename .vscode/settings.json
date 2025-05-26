@@ -4,6 +4,11 @@
         "stdio.h": "c",
         "fcntl.h": "c",
         "stdlib.h": "c",
-        "stat.h": "c"
-    }
+        "stat.h": "c",
+        "types.h": "c",
+        "camera.h": "c",
+        "videodev2.h": "c",
+        "string.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

@@ -199,25 +199,27 @@ CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path)//采�
     buf.memory = V4L2_MEMORY_MMAP;
 
     // 从队列取出已填充数据的缓冲区
-    if (ioctl(dev->fd, VIDIOC_DQBUF, &buf) < 0) {
+    if (ioctl(dev->fd, VIDIOC_DQBUF, &buf) < 0) 
+    {
         printf("VIDIOC_DQBUF failed\r\n");
         return kErrorDQBuf;
     }
 
     // 处理数据（保存为文件）
     FILE *fp = fopen(output_path, "wb");
-    if (fp == NULL) {
+    if (fp == NULL) 
+    {
         printf("Failed to open output file\r\n");
         // 即使出错也要把缓冲区重新加入队列
         ioctl(dev->fd, VIDIOC_QBUF, &buf);
         return kErrorFile;
     }
-
     fwrite(dev->mmap_buffers[buf.index], 1, buf.bytesused, fp);
     fclose(fp);
 
     // 将缓冲区重新加入队列
-    if (ioctl(dev->fd, VIDIOC_QBUF, &buf) < 0) {
+    if (ioctl(dev->fd, VIDIOC_QBUF, &buf) < 0) 
+    {
         printf("VIDIOC_QBUF failed\r\n");
         return kErrorQBuf;
     }
@@ -225,16 +227,4 @@ CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path)//采�
     return kOk;
 }
 
-int main()
-{
-    CameraDevice cam = {0};
-    CameraInit("/dev/video0",NULL, &cam);
-    CameraStartCapture(cam.fd);
-    while (1)
-    {
-        CameraCaptureFrame(&cam,"../img/frame.jpg");
-    }
-    
-    
-    return 0;
-}
+

@@ -1,14 +1,19 @@
 {
-    "configurations": [
+    "configurations": 
+    [
         {
             "name": "Linux",
-            "includePath": [
+            "includePath": 
+            [
                 "${workspaceFolder}/**",
                 "/usr/include",
-                "/usr/include/x86_64-linux-gnu"
+                "/usr/include/x86_64-linux-gnu",
+                "/home/liulunfan/Project/Linux/imx6null/100ask_imx6ull-sdk/ToolChain/arm-buildroot-linux-gnueabihf_sdk-buildroot/arm-buildroot-linux-gnueabihf/sysroot/usr/include",
+                "/home/liulunfan/Project/Linux/imx6null/01_all_series_quickstart/04_嵌入式Linux应用开发基础知识/source/11_input/02_tslib/tslib-1.21/tmp/include"
             ],
             "defines": [],
             "compilerPath": "/home/liulunfan/Project/Linux/imx6null/100ask_imx6ull-sdk/ToolChain/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/clang",
+            // "compilerPath": "/home/liulunfan/Project/Linux/imx6null/100ask_imx6ull-sdk/ToolChain/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc",
             "cStandard": "c17",
             "cppStandard": "c++14",
             "intelliSenseMode": "linux-clang-arm"
