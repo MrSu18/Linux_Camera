@@ -27,7 +27,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Build with arm-buildroot-linux-gnueabihf-gcc" //在launch之前运行的任务名
+            "preLaunchTask": "Build debug file" //在launch之前运行的任务名
         }
     ]
 }

@@ -13,7 +13,7 @@
 *          const CameraConfig* config：摄像头参数配置，NULL参数表示默认
 *          CameraDevice *out_dev：相机设备结构体，存储相机分配到的资源信息
 * @return: CameraError 错误码
-* @date  : 2025.5.25
+* @date  : 2025.5.27
 * @author: sushizhou
 ****************************************************************************/
 CameraError CameraInit(const char* camera_path, const CameraConfig* config, CameraDevice *out_dev) 
@@ -235,7 +235,14 @@ CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path)//采�
     return kOk;
 }
 
-
+/***************************************************************************
+* @brief  : 关闭摄像头释放资源
+* @param  : CameraDevice *dev - 需要关闭的摄像头设备结构体指针
+* @return : CameraError - 错误码
+* @date   : 2025.5.27
+* @author : sushizhou
+* @note   : NULL
+****************************************************************************/
 CameraError CameraClose(CameraDevice *dev)//关闭摄像头释放摄像头资源
 {
     if (dev == NULL)
@@ -268,5 +275,6 @@ CameraError CameraClose(CameraDevice *dev)//关闭摄像头释放摄像头资源
     close(dev->fd);
     // 4. 清零结构体（避免悬空指针）
     memset(dev, 0, sizeof(CameraDevice));
+    printf("camera close success!\r\n");
     return kOk;
 }
