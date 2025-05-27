@@ -6,7 +6,7 @@
         {
             "label": "Build with arm-buildroot-linux-gnueabihf-gcc",
             "type": "shell",
-            "command": "gcc",
+            "command": "arm-buildroot-linux-gnueabihf-gcc",
             "args": 
             [
                 "-I",

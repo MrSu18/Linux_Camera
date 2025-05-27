@@ -11,7 +11,11 @@
 int main()
 {
     CameraDevice cam = {0};
-    CameraInit("/dev/video0",NULL, &cam);
+    if(kOk != CameraInit("/dev/video1",NULL, &cam)) 
+    {
+        printf("camera init error!\r\n");
+        return -1;
+    }
     CameraStartCapture(cam.fd);
     while (1)
     {
