@@ -8,7 +8,8 @@
         "types.h": "c",
         "camera.h": "c",
         "videodev2.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "ioctl.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

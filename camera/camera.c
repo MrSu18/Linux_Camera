@@ -27,7 +27,8 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
         printf("open camera error!\r\n");
         return kErrorOpen;
     }
-    
+    out_dev->fd = device_fd;
+
     // 配置摄像头
     const CameraConfig* active_config;
     if (config != NULL)//判断用户是否传入配置还是使用默认配置
@@ -53,6 +54,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     if (ioctl(device_fd, VIDIOC_QUERYCAP, &camera_cap))
     {
         printf("device is not a captuer!\r\n");
+        CameraClose(out_dev);
         return kErrorCapability;
     }
     // 参数配置
@@ -66,6 +68,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     if (ioctl(device_fd, VIDIOC_S_FMT, &camera_format))
     {
         printf("camera set format error!\r\n");
+        CameraClose(out_dev);
         return kErrorFormat;
     }
     
@@ -78,6 +81,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     if (ioctl(device_fd,VIDIOC_REQBUFS, &camaera_reqbuffs)) //在这个地方如果申请不了4个缓冲区的话会进行修改
     {
         printf("camera request buff error!\r\n");
+        CameraClose(out_dev);
         return kErrorReq;
     }
     
@@ -86,9 +90,10 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     out_dev->mmap_buffers = (void**)malloc(camaera_reqbuffs.count * sizeof(void*));
     if (!out_dev->bufs || !out_dev->mmap_buffers)//判断malloc是否成功
     {
-        free(out_dev->bufs);
-        free(out_dev->mmap_buffers);
-        close(device_fd);
+        // free(out_dev->bufs);
+        // free(out_dev->mmap_buffers);
+        // close(device_fd);
+        CameraClose(out_dev);
         return kErrorMemory;
     }
     
@@ -103,10 +108,11 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
             if (ioctl(device_fd,VIDIOC_QUERYBUF,&out_dev->bufs[i]))
             {
                 printf("query buffer error!\r\n");
-                for (int j = 0; j < i; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
-                free(out_dev->bufs);
-                free(out_dev->mmap_buffers);
-                close(device_fd);
+                // for (int j = 0; j < i; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
+                // free(out_dev->bufs);
+                // free(out_dev->mmap_buffers);
+                // close(device_fd);
+                CameraClose(out_dev);
                 return kErrorBuffer;
             }
             //映射到用户空间
@@ -117,10 +123,11 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
             {
                 printf("map to buffer error!\r\n");
                 // 清理已映射的缓冲区
-                for (int j = 0; j < i; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
-                free(out_dev->bufs);
-                free(out_dev->mmap_buffers);
-                close(device_fd);
+                // for (int j = 0; j < i; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
+                // free(out_dev->bufs);
+                // free(out_dev->mmap_buffers);
+                // close(device_fd);
+                CameraClose(out_dev);
                 return kErrorMap;
             } 
         }
@@ -135,16 +142,17 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
             {
         	    printf("queue buffer error\r\n");
         	    // 清理所有资源
-                for (int j = 0; j < camaera_reqbuffs.count; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
-                free(out_dev->bufs);
-                free(out_dev->mmap_buffers);
-                close(device_fd);
+                // for (int j = 0; j < camaera_reqbuffs.count; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
+                // free(out_dev->bufs);
+                // free(out_dev->mmap_buffers);
+                // close(device_fd);
+                CameraClose(out_dev);
                 return kErrorQueue;
         	}
         }
+        out_dev->buf_count++;//这里先让dev的buf_count跟着i自加是为了方便出错之后，便于用cameraclose函数进行资源释放
     }
     // 填充输出结构体
-    out_dev->fd = device_fd;
     out_dev->width = active_config->width;
     out_dev->height = active_config->height;
     out_dev->pixel_format = active_config->pixel_format;
@@ -228,3 +236,37 @@ CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path)//采�
 }
 
 
+CameraError CameraClose(CameraDevice *dev)//关闭摄像头释放摄像头资源
+{
+    if (dev == NULL)
+    {
+        printf("camera close illegal parameter!\r\n");
+        return kErrorInvalidArgument;
+    }
+    // 1. 停止数据流（如V4L2的streamoff）
+    if (dev->fd >= 0) //只关闭有效的fd，只有fd是个非负整数才是有效的，表示成功打开的资源
+    {
+        enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        ioctl(dev->fd, VIDIOC_STREAMOFF, &type); // 忽略错误，确保继续释放其他资源
+    }
+    
+    // 2. 释放内存缓冲区
+    if (dev->mmap_buffers)
+    {
+        for (int i = 0; i < dev->buf_count; i++)
+        {
+            if (dev->mmap_buffers[i] != MAP_FAILED)
+            {
+                munmap(dev->mmap_buffers[i],dev->bufs[i].length);
+            }
+            
+        }
+        free(dev->mmap_buffers);
+    }
+    free(dev->bufs); //释放缓冲区信息数组
+    // 3. 关闭文件描述符
+    close(dev->fd);
+    // 4. 清零结构体（避免悬空指针）
+    memset(dev, 0, sizeof(CameraDevice));
+    return kOk;
+}

@@ -18,8 +18,9 @@ typedef enum CameraErrors //相机错误码枚举
     kErrorQueue,            // 缓冲区加入队列失败
     kErrorBuffer,           // 内存映射失败
     kErrorDQBuf,            // 
-    kErrorFile,             
+    kErrorFile,             // 图片保存失败
     kErrorQBuf,             
+    kError,
 }CameraError;
 
 typedef struct CameraConfig// 配置参数结构体
@@ -44,5 +45,6 @@ typedef struct CameraDevice    //摄像头设备结构体
 CameraError CameraInit(const char* camera_path, const CameraConfig* config, CameraDevice *out_dev);//摄像头初始化
 CameraError CameraStartCapture(int device_fd);//开始采集启动视频流
 CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path); //采集图片
+CameraError CameraClose(CameraDevice *dev);//关闭摄像头释放摄像头资源
 
 #endif
