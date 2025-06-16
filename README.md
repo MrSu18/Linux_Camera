@@ -1,7 +1,7 @@
 # Linux_Camera
 ## 摄像头设备是哪个
 `ls /dev/video*`这个可以显示摄像头设备节点，你先拔了摄像头看看，然后再插上看看多出哪个。
-- 在此记录自己PC的 /dev/video1是笔记本自带的摄像头，如果摄像头插在左边的USB上是/dev/video2
+- 在此记录自己PC的 /dev/video0是笔记本自带的摄像头，如果摄像头插在左边的USB上是/dev/video2
 - 在我的imx6null上是/dev/vido1
 
 ## 命名规范

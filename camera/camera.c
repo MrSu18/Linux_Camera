@@ -278,3 +278,60 @@ CameraError CameraClose(CameraDevice *dev)//关闭摄像头释放摄像头资源
     printf("camera close success!\r\n");
     return kOk;
 }
+
+/***************************************************************************
+* @brief  : 枚举摄像头的支持信息
+* @param  : const char* camera_path - 摄像头设备路径
+* @return : CameraError - 错误码
+* @date   : 2025.6.16
+* @author : sushizhou
+* @note   : NULL
+****************************************************************************/
+CameraError CameraEnumFmt(const char* camera_path)
+{
+    //1. open
+    int fd = open(camera_path, O_RDWR);
+    if (fd < 0)
+    {
+        printf("camera open error--CameraEnumFmt\r\n");
+        close(fd);
+        return kErrorOpen;        
+    }
+    //2. ioctl VIDIOC_ENUM_FMT
+    struct v4l2_fmtdesc fmtdesc;
+    struct v4l2_frmsizeenum fsenum;
+    int fmt_index = 0;
+    int frame_index = 0;
+    while (1)
+    {
+        //枚举摄像头支持的格式
+        fmtdesc.index = fmt_index;//因为这个索引相当于是链表的地址
+        fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;//指定type为捕获
+        if (0 != ioctl(fd,VIDIOC_ENUM_FMT,&fmtdesc))
+        {
+            break;
+        }  
+        printf("format %s,%d:\r\n",fmtdesc.description,fmtdesc.pixelformat);
+        //3. ioctl VIDIOC_ENUM_FRAMESIZES
+        frame_index = 0;
+        while (1)
+        {
+            //枚举这种格式所支持的帧大小
+            memset(&fsenum,0,sizeof(fsenum));
+            fsenum.pixel_format = fmtdesc.pixelformat;
+            fsenum.index = frame_index;
+            if (0 != ioctl(fd,VIDIOC_ENUM_FRAMESIZES,&fsenum))
+                break;
+            else
+            {
+                printf("\tframessize: %d: %d x %d\r\n",fsenum.index,fsenum.discrete.width,fsenum.discrete.height);
+            }
+            frame_index++;
+        }
+        fmt_index++;
+    }
+    // 4. close
+    close(fd);
+    printf("camera enum fmt end!\r\n");
+    return kOk;
+}

@@ -10,8 +10,9 @@
 
 int main()
 {
+    CameraEnumFmt("/dev/video0");
     CameraDevice cam = {0};
-    if(kOk != CameraInit("/dev/video1",NULL, &cam)) 
+    if(kOk != CameraInit("/dev/video0",NULL, &cam)) 
     {
         printf("camera init error!\r\n");
         return -1;
