@@ -20,7 +20,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
 {
     if (camera_path == NULL || out_dev == NULL) return kErrorInvalidArgument;
     
-    // 打开设备
+    // 1.打开设备
     int device_fd = open(camera_path, O_RDWR);
     if (device_fd < 0) 
     {
@@ -29,7 +29,29 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     }
     out_dev->fd = device_fd;
 
-    // 配置摄像头
+    //2.查询设备是否是捕获设备
+    struct v4l2_capability camera_cap;
+    memset(&camera_cap, 0, sizeof(struct v4l2_capability));
+    if (ioctl(device_fd, VIDIOC_QUERYCAP, &camera_cap))
+    {
+        printf("device is not a captuer!\r\n");
+        CameraClose(out_dev);
+        return kErrorCapability;
+    }
+    else
+    {
+        if (!(camera_cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) //查询是否是捕获设备
+        {
+            printf("%s is not a video capture device\n", camera_path);
+            return kErrorCapability;
+        }
+        if (!camera_cap.capabilities & V4L2_CAP_STREAMING) //判断是否支持mmap
+        {
+            printf("%s doesn't supports streaming i/o\n", camera_path);
+            return kErrorCapability;
+        }
+    }
+    // 3.配置摄像头
     const CameraConfig* active_config;
     if (config != NULL)//判断用户是否传入配置还是使用默认配置
     {
@@ -48,15 +70,6 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
         active_config = &default_config;
     }
 
-    //查询设备是否是捕获设备
-    struct v4l2_capability camera_cap;
-    memset(&camera_cap, 0, sizeof(struct v4l2_capability));
-    if (ioctl(device_fd, VIDIOC_QUERYCAP, &camera_cap))
-    {
-        printf("device is not a captuer!\r\n");
-        CameraClose(out_dev);
-        return kErrorCapability;
-    }
     // 参数配置
     struct v4l2_format camera_format;
     memset(&camera_format, 0, sizeof(struct v4l2_format));
@@ -72,10 +85,10 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
         return kErrorFormat;
     }
     
-    // 申请缓冲区
+    // 4. 申请缓冲区
     struct v4l2_requestbuffers camaera_reqbuffs;
     memset(&camaera_reqbuffs, 0, sizeof(struct v4l2_requestbuffers));
-    camaera_reqbuffs.count = 4;//申请四个缓冲区
+    camaera_reqbuffs.count = 4;//申请四个缓冲区,但是能申请多少个最后是用驱动程序给出
     camaera_reqbuffs.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camaera_reqbuffs.memory = V4L2_MEMORY_MMAP; //使用mmap内存映射模式
     if (ioctl(device_fd,VIDIOC_REQBUFS, &camaera_reqbuffs)) //在这个地方如果申请不了4个缓冲区的话会进行修改
@@ -105,7 +118,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
             out_dev->bufs[i].index = i;
         	out_dev->bufs[i].type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         	out_dev->bufs[i].memory = V4L2_MEMORY_MMAP;
-            if (ioctl(device_fd,VIDIOC_QUERYBUF,&out_dev->bufs[i]))
+            if (ioctl(device_fd,VIDIOC_QUERYBUF,&out_dev->bufs[i]))//mmap映射的时候有长度什么的信息需要知道所以这里有查询buf的信息
             {
                 printf("query buffer error!\r\n");
                 // for (int j = 0; j < i; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
@@ -138,7 +151,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
         	out_dev->bufs[i].index = i;
         	out_dev->bufs[i].type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         	out_dev->bufs[i].memory = V4L2_MEMORY_MMAP;
-        	if (ioctl(device_fd, VIDIOC_QBUF, &out_dev->bufs[i]))
+        	if (ioctl(device_fd, VIDIOC_QBUF, &out_dev->bufs[i]))//放入队列
             {
         	    printf("queue buffer error\r\n");
         	    // 清理所有资源
