@@ -9,6 +9,8 @@
 #include "camera.h"
 #include <pthread.h>
 
+pthread_mutex_t cam_mutex;//摄像头操作的互斥量
+
 static void *thread_control_camera_brightness (void *args);
 
 int main()
@@ -24,12 +26,14 @@ int main()
 
     //创建线程
     pthread_t ctr_thread;
+    pthread_mutex_init(&cam_mutex, NULL);  // 初始化互斥量
     pthread_create(&ctr_thread,NULL,thread_control_camera_brightness,(void*)cam.fd);
 
     while (1)
     {
         CameraCaptureFrame(&cam,"img/frame.jpg");
     }
+    pthread_mutex_destroy(&cam_mutex);     // 在程序退出前销毁
     return 0;
 }
 
@@ -71,7 +75,9 @@ static void *thread_control_camera_brightness (void *args)
             now_brightness.value = ctrl_information.maximum;
         if (now_brightness.value < ctrl_information.minimum)
             now_brightness.value = ctrl_information.minimum;
+        pthread_mutex_lock(&cam_mutex);//加锁避免读帧和控制亮度进行竞争导致出错
         ioctl(fd,VIDIOC_S_CTRL,&now_brightness);
+        pthread_mutex_unlock(&cam_mutex);//解锁
     }
     return NULL;
     
