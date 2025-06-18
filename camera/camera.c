@@ -91,15 +91,14 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     camaera_reqbuffs.count = 4;//申请四个缓冲区,但是能申请多少个最后是用驱动程序给出
     camaera_reqbuffs.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camaera_reqbuffs.memory = V4L2_MEMORY_MMAP; //使用mmap内存映射模式
-    if (ioctl(device_fd,VIDIOC_REQBUFS, &camaera_reqbuffs)) //在这个地方如果申请不了4个缓冲区的话会进行修改
-    {
+    if (ioctl(device_fd,VIDIOC_REQBUFS, &camaera_reqbuffs)) //向设备申请缓存区
         printf("camera request buff error!\r\n");
         CameraClose(out_dev);
         return kErrorReq;
     }
     
-    //内存映射
-    out_dev->bufs = (struct v4l2_buffer*)malloc(camaera_reqbuffs.count * sizeof(struct v4l2_buffer));//使用malloc避免函数结束之后内存被自动释放
+    //内存映射,使用malloc避免函数结束之后内存被自动释放
+    out_dev->bufs = (struct v4l2_buffer*)malloc(camaera_reqbuffs.count * sizeof(struct v4l2_buffer));//在让每个缓冲区都有自己对应的buf为了跟踪每个缓冲区的独立状态
     out_dev->mmap_buffers = (void**)malloc(camaera_reqbuffs.count * sizeof(void*));
     if (!out_dev->bufs || !out_dev->mmap_buffers)//判断malloc是否成功
     {
@@ -118,7 +117,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
             out_dev->bufs[i].index = i;
         	out_dev->bufs[i].type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         	out_dev->bufs[i].memory = V4L2_MEMORY_MMAP;
-            if (ioctl(device_fd,VIDIOC_QUERYBUF,&out_dev->bufs[i]))//mmap映射的时候有长度什么的信息需要知道所以这里有查询buf的信息
+            if (ioctl(device_fd,VIDIOC_QUERYBUF,&out_dev->bufs[i]))//获取缓存帧的地址、长度;mmap映射的时候有长度什么的信息需要知道所以这里有查询buf的信息
             {
                 printf("query buffer error!\r\n");
                 // for (int j = 0; j < i; j++) munmap(out_dev->mmap_buffers[j], out_dev->bufs[j].length);
