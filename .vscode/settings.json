@@ -9,7 +9,8 @@
         "camera.h": "c",
         "videodev2.h": "c",
         "string.h": "c",
-        "ioctl.h": "c"
+        "ioctl.h": "c",
+        "type_traits": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -92,6 +92,7 @@ CameraError CameraInit(const char* camera_path, const CameraConfig* config, Came
     camaera_reqbuffs.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     camaera_reqbuffs.memory = V4L2_MEMORY_MMAP; //使用mmap内存映射模式
     if (ioctl(device_fd,VIDIOC_REQBUFS, &camaera_reqbuffs)) //向设备申请缓存区
+    {
         printf("camera request buff error!\r\n");
         CameraClose(out_dev);
         return kErrorReq;

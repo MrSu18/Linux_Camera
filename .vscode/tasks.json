@@ -15,7 +15,8 @@
                 "-o",
                 "${workspaceFolder}/main",
                 "${workspaceFolder}/camera/camera.c",
-                "${workspaceFolder}/main.c"
+                "${workspaceFolder}/main.c",
+                "-pthread"
             ],
             "group": 
             {
@@ -36,7 +37,8 @@
                 "-o",
                 "${workspaceFolder}/main.out",
                 "${workspaceFolder}/camera/camera.c",
-                "${workspaceFolder}/main.c"
+                "${workspaceFolder}/main.c",
+                "-pthread"
             ],
             "group": "build"
         }

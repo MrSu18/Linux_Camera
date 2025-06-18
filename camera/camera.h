@@ -47,5 +47,4 @@ CameraError CameraStartCapture(int device_fd);//开始采集启动视频流
 CameraError CameraCaptureFrame(CameraDevice *dev, const char *output_path); //采集图片
 CameraError CameraClose(CameraDevice *dev);//关闭摄像头释放摄像头资源
 CameraError CameraEnumFmt(const char* camera_path);//枚举摄像头的配置
-
 #endif
