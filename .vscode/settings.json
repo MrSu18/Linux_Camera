@@ -10,7 +10,10 @@
         "videodev2.h": "c",
         "string.h": "c",
         "ioctl.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "su_typedef.h": "c",
+        "camera_manager.h": "c",
+        "mman.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

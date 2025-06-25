@@ -31,12 +31,12 @@
             "command": "gcc",
             "args": 
             [
-                "-I",
-                "${workspaceFolder}/camera",
+                "-I${workspaceFolder}/include",
                 "-g",
                 "-o",
                 "${workspaceFolder}/main.out",
-                "${workspaceFolder}/camera/camera.c",
+                "${workspaceFolder}/camera/camera_manager.c",
+                "${workspaceFolder}/camera/v4l2.c",
                 "${workspaceFolder}/main.c",
                 "-pthread"
             ],
