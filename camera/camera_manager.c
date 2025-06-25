@@ -4,9 +4,9 @@
 #include <string.h>
 
 CamOprLHeadPtr camera_opr_head=NULL;//摄像头操作集的表头
-T_CameraDevice camera_main_usb;//主usb摄像头
-T_CameraBuf camera_usb_buf;//USB摄像头的BUF
-extern T_CameraOperation v4l2_camera_opration;//v4l2.c里面的全局变量,v4l2摄像头的操作表
+CameraDevice camera_main_usb;//主usb摄像头
+CameraBuf camera_usb_buf;//USB摄像头的BUF
+extern CameraOperation v4l2_camera_opration;//v4l2.c里面的全局变量,v4l2摄像头的操作表
 
 /***************************************************************************
  * @brief  : 注册摄像头操作集到全局链表
@@ -20,7 +20,7 @@ extern T_CameraOperation v4l2_camera_opration;//v4l2.c里面的全局变量,v4l2
  * @date   : 2025.6.24
  * @author : sushizhou
  ***************************************************************************/
-FunctionStatus RegisterCameraOpr(T_CameraOperation in_camera_opr,const char*name,PT_CameraOperation *out_camera_opr)
+FunctionStatus RegisterCameraOpr(CameraOperation in_camera_opr,const char*name,CameraOperationPtr *out_camera_opr)
 {
     //1. 判断是否为空表
     if (camera_opr_head==NULL)
@@ -30,7 +30,7 @@ FunctionStatus RegisterCameraOpr(T_CameraOperation in_camera_opr,const char*name
     }
     
     //2. 先查看操作集中是否有需要注册的操作函数,如果有就不需要了
-    PT_CameraOperation temp_ptr=camera_opr_head->next;
+    CameraOperationPtr temp_ptr=camera_opr_head->next;
     for (uint8_t i = 0; i < camera_opr_head->list_length; i++)
     {
         if (strcmp(temp_ptr->name,name)==0) //操作集中已经有了这个操作函数了
@@ -41,15 +41,15 @@ FunctionStatus RegisterCameraOpr(T_CameraOperation in_camera_opr,const char*name
             }
             return kSuccess;
         }
-        if (temp_ptr->pt_next==NULL)
+        if (temp_ptr->next==NULL)
         {
             break;
         }
-        temp_ptr=temp_ptr->pt_next;
+        temp_ptr=temp_ptr->next;
     }
 
     //3. 创建新节点
-    PT_CameraOperation new_node =malloc(sizeof(T_CameraOperation));
+    CameraOperationPtr new_node =malloc(sizeof(CameraOperation));
     if (new_node == NULL) 
     {
         printf("Error: Memory allocation failed for camera operation!\n");
@@ -57,16 +57,16 @@ FunctionStatus RegisterCameraOpr(T_CameraOperation in_camera_opr,const char*name
     }
     
     // 4.拷贝数据并插入链表尾部
-    memcpy(new_node,&in_camera_opr,sizeof(T_CameraOperation));
+    memcpy(new_node,&in_camera_opr,sizeof(CameraOperation));
     if (temp_ptr!=NULL) //这里要判断头节点的后面是否有数据,没数据的话插到头节点后面
     {
-        temp_ptr->pt_next=new_node;
+        temp_ptr->next=new_node;
     }
     else
     {
         camera_opr_head->next=new_node;
     }
-    new_node->pt_next=NULL;
+    new_node->next=NULL;
     camera_opr_head->list_length++;
     
     //5. 返回新节点
@@ -80,14 +80,14 @@ FunctionStatus RegisterCameraOpr(T_CameraOperation in_camera_opr,const char*name
 /***************************************************************************
 * @brief : 进行设备初始化
 * @param : const char* camera_path：设备路径
-*          PT_CameraDevice camera_device：摄像头硬件参数,用于得到摄像头参数
+*          CameraDevicePtr camera_device：摄像头硬件参数,用于得到摄像头参数
 * @return: FunctionStatus 错误码
 * @date  : 2025.6.24
 * @author: sushizhou
 ****************************************************************************/
-FunctionStatus CameraDeviceInit(const char *camera_path,PT_CameraDevice camera_device)
+FunctionStatus CameraDeviceInit(const char *camera_path,CameraDevicePtr camera_device)
 {
-    PT_CameraOperation temp_opr_node=camera_opr_head->next;
+    CameraOperationPtr temp_opr_node=camera_opr_head->next;
     while (temp_opr_node)//遍历操作集链表,当temp==null的时候会跳出
     {
         //如果找到了适合这个摄像头的操作集,那初始化就会成功,当初始化成功的适合就能为这个摄像头匹配到对应的操作集了
@@ -96,7 +96,7 @@ FunctionStatus CameraDeviceInit(const char *camera_path,PT_CameraDevice camera_d
             return kSuccess;
         }
         
-        temp_opr_node=temp_opr_node->pt_next;
+        temp_opr_node=temp_opr_node->next;
     }
     return kERROR;
 }

@@ -12,7 +12,7 @@
 //这个应用程序支持的图像格式
 const uint32_t support_formats[]={V4L2_PIX_FMT_YUYV, V4L2_PIX_FMT_MJPEG, V4L2_PIX_FMT_RGB565};
 //这个可以看作是一个临时变量,当一个设备需要初始化的时候,就会对这个进行修改,如果有不支持的比如mmap和r/w进行修改之后,再对这个操作集进行注册,然后并且让设备指向这个操作集
-T_CameraOperation v4l2_camera_opration;
+CameraOperation v4l2_camera_opration;
 
 FunctionStatus V4l2GetFrameForReadWrite();
 FunctionStatus V4l2PutFrameForReadWrite();
@@ -38,7 +38,7 @@ FunctionStatus IsSupportThisFormat(uint32_t pixel_format)
 /***************************************************************************
  * @brief  : 初始化V4L2摄像头设备
  * @param  : const char* camera_path       : 摄像头设备节点路径(如"/dev/video0")
- *           PT_CameraDevice camera_device : 摄像头设备结构体指针，用于保存初始化后的设备信息
+ *           CameraDevicePtr camera_device : 摄像头设备结构体指针，用于保存初始化后的设备信息
  * @return : FunctionStatus               : 返回kSuccess表示成功，kERROR表示失败
  * @note   : 1. 支持自动检测设备能力(mmap或read/write)
  *           2. 自动匹配支持的像素格式
@@ -46,7 +46,7 @@ FunctionStatus IsSupportThisFormat(uint32_t pixel_format)
  * @date   : 2025.6.24
  * @author : sushizhou
  ***************************************************************************/
-FunctionStatus V4l2InitDevice(const char *camera_path, PT_CameraDevice camera_device)
+FunctionStatus V4l2InitDevice(const char *camera_path, CameraDevicePtr camera_device)
 {
     if (camera_path==NULL || camera_device==NULL) 
     {
@@ -184,7 +184,7 @@ err_exit:
 
 /***************************************************************************
  * @brief  : 关闭并释放V4L2摄像头设备资源
- * @param  : PT_CameraDevice camera_device : 摄像头设备结构体指针
+ * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
  * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败
  * @note   : 1. 会解除所有mmap映射的缓冲区
  *           2. 关闭设备文件描述符
@@ -192,7 +192,7 @@ err_exit:
  * @date   : 2025.6.24
  * @author : sushizhou
  ***************************************************************************/
-FunctionStatus V4l2ExitDevice(PT_CameraDevice camera_device)
+FunctionStatus V4l2ExitDevice(CameraDevicePtr camera_device)
 {
     int i;
     for (i = 0; i < camera_device->buf_count; i++)
@@ -210,8 +210,8 @@ FunctionStatus V4l2ExitDevice(PT_CameraDevice camera_device)
 
 /***************************************************************************
  * @brief  : 从V4L2摄像头设备获取一帧数据用于流式传输
- * @param  : PT_CameraDevice camera_device : 摄像头设备结构体指针
- * @param  : PT_CameraBuf camera_buf       : 输出帧数据存储结构体指针
+ * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
+ * @param  : CameraBufPtr camera_buf       : 输出帧数据存储结构体指针
  * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败
  * @note   : 1. 使用poll机制等待摄像头数据就绪
  *           2. 通过VIDIOC_DQBUF从队列取出缓冲区
@@ -220,7 +220,7 @@ FunctionStatus V4l2ExitDevice(PT_CameraDevice camera_device)
  * @date   : 2025.6.25
  * @author : sushizhou
  ***************************************************************************/
-FunctionStatus V4l2GetFrameForStreaming(PT_CameraDevice camera_device, PT_CameraBuf camera_buf)
+FunctionStatus V4l2GetFrameForStreaming(CameraDevicePtr camera_device, CameraBufPtr camera_buf)
 {
     //1. poll等待有数据可读
     struct pollfd fds[1];//数组每个成员描述一个要监视的fd
@@ -260,8 +260,8 @@ FunctionStatus V4l2GetFrameForStreaming(PT_CameraDevice camera_device, PT_Camera
 
 /***************************************************************************
  * @brief  : 将处理后的视频帧缓冲区重新放回V4L2摄像头队列
- * @param  : PT_CameraDevice camera_device : 摄像头设备结构体指针
- * @param  : PT_CameraBuf camera_buf       : 帧数据存储结构体指针(未直接使用)
+ * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
+ * @param  : CameraBufPtr camera_buf       : 帧数据存储结构体指针(未直接使用)
  * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败 
  * @note   : 1. 必须与V4l2GetFrameForStreaming配对使用
  *           2. 通过VIDIOC_QBUF将缓冲区重新加入驱动队列
@@ -270,7 +270,7 @@ FunctionStatus V4l2GetFrameForStreaming(PT_CameraDevice camera_device, PT_Camera
  * @date   : 2025.06.25
  * @author : sushizhou
  ***************************************************************************/
-FunctionStatus V4l2PutFrameForStreaming(PT_CameraDevice camera_device, PT_CameraBuf camera_buf)
+FunctionStatus V4l2PutFrameForStreaming(CameraDevicePtr camera_device, CameraBufPtr camera_buf)
 {
     /*处理完之后把缓冲区再放回队列 VIDIOC_QBUF */
     struct v4l2_buffer v4l2_buf;
@@ -293,7 +293,7 @@ FunctionStatus V4l2PutFrameForReadWrite()
 {
     return kSuccess;
 }
-FunctionStatus V4l2StartDevice(PT_CameraDevice camera_device)
+FunctionStatus V4l2StartDevice(CameraDevicePtr camera_device)
 {
     // (3)开始采集
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -304,7 +304,7 @@ FunctionStatus V4l2StartDevice(PT_CameraDevice camera_device)
     }
     return kSuccess;
 }
-FunctionStatus V4l2StopDevice(PT_CameraDevice camera_device)
+FunctionStatus V4l2StopDevice(CameraDevicePtr camera_device)
 {
     return kSuccess;
 }
@@ -314,7 +314,7 @@ FunctionStatus V4l2GetFormat()
 }
 
 //这个可以看作是一个临时变量,当一个设备需要初始化的时候,就会对这个进行修改,如果有不支持的比如mmap和r/w进行修改之后,再对这个操作集进行注册,然后并且让设备指向这个操作集
-T_CameraOperation v4l2_camera_opration =
+CameraOperation v4l2_camera_opration =
 {
     .name        = "v4l2_mmap",
     .InitDevice  = V4l2InitDevice,
