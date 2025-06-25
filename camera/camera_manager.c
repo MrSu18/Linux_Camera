@@ -5,6 +5,7 @@
 
 CamOprLHeadPtr camera_opr_head=NULL;//摄像头操作集的表头
 T_CameraDevice camera_main_usb;//主usb摄像头
+T_CameraBuf camera_usb_buf;//USB摄像头的BUF
 extern T_CameraOperation v4l2_camera_opration;//v4l2.c里面的全局变量,v4l2摄像头的操作表
 
 /***************************************************************************

@@ -17,6 +17,32 @@ static void *thread_control_camera_brightness (void *args);
 int main()
 {
     CameraInit("/dev/video0");
+    memset(&camera_usb_buf,0,sizeof(camera_usb_buf));
+    camera_main_usb.pt_opr->StartDevice(&camera_main_usb);
+    while (1)
+    {
+        if (camera_main_usb.pt_opr->GetFrame(&camera_main_usb,&camera_usb_buf)==kERROR)
+        {
+            return -1;
+        }
+        //处理图像
+
+        // 处理数据（保存为文件）
+        FILE *fp = fopen("img/frame.jpg", "wb");
+        if (fp == NULL) 
+        {
+            printf("Failed to open output file\r\n");
+            // 即使出错也要把缓冲区重新加入队列
+            camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_usb_buf);
+            return -1;
+        }
+        fwrite(camera_usb_buf.auc_pixel_datas, 1, camera_usb_buf.total_bytes, fp);
+        fclose(fp);
+
+        camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_usb_buf);
+        
+    }
+    
     // CameraEnumFmt("/dev/video1");
     // CameraDevice cam = {0};
     // if(kOk != CameraInit("/dev/video1",NULL, &cam)) 

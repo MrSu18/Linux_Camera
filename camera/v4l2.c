@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <linux/videodev2.h>
+#include <poll.h>
 #include "camera_manager.h"
 
 //这个应用程序支持的图像格式
@@ -173,7 +174,7 @@ FunctionStatus V4l2InitDevice(const char *camera_path, PT_CameraDevice camera_de
         camera_device->buf_maxlen = camera_device->width * camera_device->height * 4;
         camera_device->mmap_buffers[0] = malloc(camera_device->buf_maxlen);
     }
-    
+    camera_device->pt_opr=&v4l2_camera_opration;//暂时用一下后续还要修改,我觉得这样使用不是很好.
     return kSuccess;
 
 err_exit:
@@ -207,17 +208,81 @@ FunctionStatus V4l2ExitDevice(PT_CameraDevice camera_device)
     return kSuccess;
 }
 
-FunctionStatus V4l2GetFormat()
+/***************************************************************************
+ * @brief  : 从V4L2摄像头设备获取一帧数据用于流式传输
+ * @param  : PT_CameraDevice camera_device : 摄像头设备结构体指针
+ * @param  : PT_CameraBuf camera_buf       : 输出帧数据存储结构体指针
+ * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败
+ * @note   : 1. 使用poll机制等待摄像头数据就绪
+ *           2. 通过VIDIOC_DQBUF从队列取出缓冲区
+ *           3. 填充输出参数包括分辨率/格式/像素数据指针等
+ *           4. 像素数据内存由驱动mmap映射，调用者无需额外分配
+ * @date   : 2025.6.25
+ * @author : sushizhou
+ ***************************************************************************/
+FunctionStatus V4l2GetFrameForStreaming(PT_CameraDevice camera_device, PT_CameraBuf camera_buf)
 {
+    //1. poll等待有数据可读
+    struct pollfd fds[1];//数组每个成员描述一个要监视的fd
+    fds[0].fd=camera_device->fd;
+    fds[0].events=POLLIN;//要监视的事件是:数据可读
+    if (poll(fds,1,-1)<=0)//监视fds数组的前1个fd,超出时间-1表示一直阻塞等待
+    {
+        printf("error: poll error!\r\n");
+        return kERROR;
+    }
+
+    //2. 从队列中取出 VIDIOC_DQBUF
+    struct v4l2_buffer v4l2_buf;
+    memset(&v4l2_buf, 0, sizeof(struct v4l2_buffer));
+    v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    v4l2_buf.memory = V4L2_MEMORY_MMAP;
+    if(ioctl(camera_device->fd, VIDIOC_DQBUF, &v4l2_buf))
+    {
+        printf("error: Unable to dequeue buffer.\r\n");
+    	return -1;
+    }
+    camera_device->buf_cur_index=v4l2_buf.index;
+    //3. 把缓冲区的数据记录下来到camera_buf中
+    camera_buf->pixel_format=camera_device->pixel_format;
+    camera_buf->width=camera_device->width;
+    camera_buf->height=camera_device->height;
+    camera_buf->bpp=(camera_device->pixel_format==V4L2_PIX_FMT_YUYV)? 16 : \
+                    (camera_device->pixel_format == V4L2_PIX_FMT_MJPEG) ? 0 :  \
+                    (camera_device->pixel_format == V4L2_PIX_FMT_RGB565) ? 16 :  \
+                    0;
+    camera_buf->line_bytes    = camera_device->width * camera_buf->bpp / 8;
+    camera_buf->total_bytes   = v4l2_buf.bytesused;
+    camera_buf->auc_pixel_datas = camera_device->mmap_buffers[v4l2_buf.index]; 
+    
     return kSuccess;
 }
 
-FunctionStatus V4l2GetFrameForStreaming()
+/***************************************************************************
+ * @brief  : 将处理后的视频帧缓冲区重新放回V4L2摄像头队列
+ * @param  : PT_CameraDevice camera_device : 摄像头设备结构体指针
+ * @param  : PT_CameraBuf camera_buf       : 帧数据存储结构体指针(未直接使用)
+ * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败 
+ * @note   : 1. 必须与V4l2GetFrameForStreaming配对使用
+ *           2. 通过VIDIOC_QBUF将缓冲区重新加入驱动队列
+ *           3. 使用camera_device->buf_cur_index确定缓冲区位置
+ *           4. 这是V4L2视频采集流程的关键步骤(取帧->处理->还帧)
+ * @date   : 2025.06.25
+ * @author : sushizhou
+ ***************************************************************************/
+FunctionStatus V4l2PutFrameForStreaming(PT_CameraDevice camera_device, PT_CameraBuf camera_buf)
 {
-    return kSuccess;
-}
-FunctionStatus V4l2PutFrameForStreaming()
-{
+    /*处理完之后把缓冲区再放回队列 VIDIOC_QBUF */
+    struct v4l2_buffer v4l2_buf;
+	memset(&v4l2_buf, 0, sizeof(struct v4l2_buffer));
+	v4l2_buf.index  = camera_device->buf_cur_index;
+	v4l2_buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	v4l2_buf.memory = V4L2_MEMORY_MMAP;
+	if (ioctl(camera_device->fd, VIDIOC_QBUF, &v4l2_buf)) 
+    {
+	    printf("Unable to queue buffer.\n");
+	    return kERROR;
+	}
     return kSuccess;
 }
 FunctionStatus V4l2GetFrameForReadWrite()
@@ -228,15 +293,25 @@ FunctionStatus V4l2PutFrameForReadWrite()
 {
     return kSuccess;
 }
-FunctionStatus V4l2StartDevice()
+FunctionStatus V4l2StartDevice(PT_CameraDevice camera_device)
+{
+    // (3)开始采集
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (ioctl(camera_device->fd, VIDIOC_STREAMON, &type)) 
+    {
+        printf("Failed to start streaming\r\n");
+        return kERROR;
+    }
+    return kSuccess;
+}
+FunctionStatus V4l2StopDevice(PT_CameraDevice camera_device)
 {
     return kSuccess;
 }
-FunctionStatus V4l2StopDevice()
+FunctionStatus V4l2GetFormat()
 {
     return kSuccess;
 }
-
 
 //这个可以看作是一个临时变量,当一个设备需要初始化的时候,就会对这个进行修改,如果有不支持的比如mmap和r/w进行修改之后,再对这个操作集进行注册,然后并且让设备指向这个操作集
 T_CameraOperation v4l2_camera_opration =

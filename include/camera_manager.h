@@ -19,6 +19,7 @@ typedef struct CameraDevice //相机设备(管理硬件)
 
     uint32_t buf_count;     // 缓冲区数量
     uint32_t buf_maxlen;    //记录mmap时候的长度,用于umap
+    uint32_t buf_cur_index;//当前的缓冲区索引值
     uint8_t  *mmap_buffers[BUFFER_NUM];//内存映射指针数组
     //函数
     PT_CameraOperation pt_opr;//指向对应的操作表
@@ -55,6 +56,9 @@ typedef struct CamOprLHead //操作集链表表头
     uint8_t list_length;//链表长度
 }CamOprLHead,*CamOprLHeadPtr;
 
+extern CamOprLHeadPtr camera_opr_head;//摄像头操作集的表头
+extern T_CameraDevice camera_main_usb;//主usb摄像头
+extern T_CameraBuf camera_usb_buf;//USB摄像头的BUF
 
 FunctionStatus RegisterCameraOpr(T_CameraOperation in_camera_opr,const char*name,PT_CameraOperation *out_camera_opr);//遇到新的相机设备需要一套新的或者不同的驱动函数时,将此操作节点插入到全局操作集中
 FunctionStatus CameraInit(const char *camera_path);//初始化操作集链表,并且完成设备的初始化
