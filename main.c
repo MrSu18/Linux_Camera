@@ -25,7 +25,6 @@ int main()
         {
             return -1;
         }
-        //处理图像
 
         // 处理数据（保存为文件）
         FILE *fp = fopen("img/frame.jpg", "wb");

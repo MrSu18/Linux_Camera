@@ -211,7 +211,7 @@ FunctionStatus V4l2ExitDevice(CameraDevicePtr camera_device)
 /***************************************************************************
  * @brief  : 从V4L2摄像头设备获取一帧数据用于流式传输
  * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
- * @param  : CameraBufPtr camera_buf       : 输出帧数据存储结构体指针
+             CameraBufPtr camera_buf       : 输出帧数据存储结构体指针
  * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败
  * @note   : 1. 使用poll机制等待摄像头数据就绪
  *           2. 通过VIDIOC_DQBUF从队列取出缓冲区
@@ -261,7 +261,7 @@ FunctionStatus V4l2GetFrameForStreaming(CameraDevicePtr camera_device, CameraBuf
 /***************************************************************************
  * @brief  : 将处理后的视频帧缓冲区重新放回V4L2摄像头队列
  * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
- * @param  : CameraBufPtr camera_buf       : 帧数据存储结构体指针(未直接使用)
+           : CameraBufPtr camera_buf       : 帧数据存储结构体指针(未直接使用)
  * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败 
  * @note   : 1. 必须与V4l2GetFrameForStreaming配对使用
  *           2. 通过VIDIOC_QBUF将缓冲区重新加入驱动队列
@@ -293,6 +293,15 @@ FunctionStatus V4l2PutFrameForReadWrite()
 {
     return kSuccess;
 }
+
+/***************************************************************************
+ * @brief  : 启动相机准备采集
+ * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
+ * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败 
+ * @note   : VIDIOC_STREAMON
+ * @date   : 2025.06.25
+ * @author : sushizhou
+ ***************************************************************************/
 FunctionStatus V4l2StartDevice(CameraDevicePtr camera_device)
 {
     // (3)开始采集
@@ -304,8 +313,23 @@ FunctionStatus V4l2StartDevice(CameraDevicePtr camera_device)
     }
     return kSuccess;
 }
+
+/***************************************************************************
+ * @brief  : 关闭相机
+ * @param  : CameraDevicePtr camera_device : 摄像头设备结构体指针
+ * @return : FunctionStatus                : 返回kSuccess表示成功，kERROR表示失败 
+ * @note   : VIDIOC_STREAMOFF
+ * @date   : 2025.06.25
+ * @author : sushizhou
+ ***************************************************************************/
 FunctionStatus V4l2StopDevice(CameraDevicePtr camera_device)
 {
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (ioctl(camera_device->fd, VIDIOC_STREAMOFF, &type)) 
+    {
+        printf("Failed to stop streaming\r\n");
+        return kERROR;
+    }
     return kSuccess;
 }
 FunctionStatus V4l2GetFormat()
