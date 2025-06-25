@@ -62,5 +62,6 @@ extern CameraBuf camera_usb_buf;//USB摄像头的BUF
 
 FunctionStatus RegisterCameraOpr(CameraOperation in_camera_opr,const char*name,CameraOperationPtr *out_camera_opr);//遇到新的相机设备需要一套新的或者不同的驱动函数时,将此操作节点插入到全局操作集中
 FunctionStatus CameraInit(const char *camera_path);//初始化操作集链表,并且完成设备的初始化
+int CameraSearchNode(CamOprLHeadPtr L, const char* name,CameraOperationPtr *node);//查找元素是否在链表中
 
 #endif

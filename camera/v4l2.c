@@ -43,7 +43,7 @@ FunctionStatus IsSupportThisFormat(uint32_t pixel_format)
  * @note   : 1. 支持自动检测设备能力(mmap或read/write)
  *           2. 自动匹配支持的像素格式
  *           3. 缓冲区申请失败时会自动回滚资源
- * @date   : 2025.6.24
+ * @date   : 2025.6.25
  * @author : sushizhou
  ***************************************************************************/
 FunctionStatus V4l2InitDevice(const char *camera_path, CameraDevicePtr camera_device)
@@ -166,6 +166,7 @@ FunctionStatus V4l2InitDevice(const char *camera_path, CameraDevicePtr camera_de
     //如果摄像头支持的是R/W
     else if (camera_cap.capabilities & V4L2_CAP_READWRITE)
     {
+        v4l2_camera_opration.name     = "v4l2_r/w";
         v4l2_camera_opration.GetFrame = V4l2GetFrameForReadWrite;
         v4l2_camera_opration.PutFrame = V4l2PutFrameForReadWrite;
         /* read(fd, buf, size) */
@@ -174,7 +175,12 @@ FunctionStatus V4l2InitDevice(const char *camera_path, CameraDevicePtr camera_de
         camera_device->buf_maxlen = camera_device->width * camera_device->height * 4;
         camera_device->mmap_buffers[0] = malloc(camera_device->buf_maxlen);
     }
-    camera_device->pt_opr=&v4l2_camera_opration;//暂时用一下后续还要修改,我觉得这样使用不是很好.
+    //这个地方使用注册操作表函数,对v4l2_camera_opration进行管理,判断是否在集合中,不在则新增,在就之际返回地址给device
+    if(RegisterCameraOpr(v4l2_camera_opration,v4l2_camera_opration.name,&(camera_device->pt_opr))==kERROR)
+    {
+        printf("error: unable to register camera operationa!\r\n");
+        goto err_exit;
+    }
     return kSuccess;
 
 err_exit:

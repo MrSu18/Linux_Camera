@@ -17,7 +17,7 @@ extern CameraOperation v4l2_camera_opration;//v4l2.c里面的全局变量,v4l2�
  * @note   : 1. 会自动检查重名，避免重复注册
  *           2. 调用者需保证name的唯一性
  *           3. 内存由链表管理，调用Exit函数时需统一释放
- * @date   : 2025.6.24
+ * @date   : 2025.6.25
  * @author : sushizhou
  ***************************************************************************/
 FunctionStatus RegisterCameraOpr(CameraOperation in_camera_opr,const char*name,CameraOperationPtr *out_camera_opr)
@@ -30,22 +30,22 @@ FunctionStatus RegisterCameraOpr(CameraOperation in_camera_opr,const char*name,C
     }
     
     //2. 先查看操作集中是否有需要注册的操作函数,如果有就不需要了
-    CameraOperationPtr temp_ptr=camera_opr_head->next;
-    for (uint8_t i = 0; i < camera_opr_head->list_length; i++)
+    CameraOperationPtr temp_ptr;
+    int ret = CameraSearchNode(camera_opr_head,name,&temp_ptr);
+    switch (ret)
     {
-        if (strcmp(temp_ptr->name,name)==0) //操作集中已经有了这个操作函数了
-        {
-            if (out_camera_opr!=NULL)
-            {
-                *out_camera_opr = temp_ptr;
-            }
-            return kSuccess;
-        }
-        if (temp_ptr->next==NULL)
-        {
-            break;
-        }
-        temp_ptr=temp_ptr->next;
+    case 0:   //若链表中有这个元素
+        *out_camera_opr=temp_ptr;
+        return kSuccess;
+        break;
+    case 2:
+        temp_ptr=NULL;
+        break;
+    case -1:
+        printf("error: search list error!\r\n");
+        return kERROR;
+    default:
+        break;
     }
 
     //3. 创建新节点
@@ -144,4 +144,45 @@ FunctionStatus CameraInit(const char *camera_path)
     }
 
     return kSuccess;
+}
+
+/***************************************************************************
+* @brief : 查找元素是否在链表中
+* @param : CamOprLHeadPtr L: 链表表头
+*          const char*name：需要查找的元素
+*          CameraOperationPtr *out_camera_opr: 若找到返回节点地址,否则返回NULL
+* @return: -1: 链表未初始化 0:链表中有这个元素,返回这个元素节点 1:链表中没这个元素,并且链表的尾部通过节点返回 2:链表为空
+* @date  : 2025.6.25
+* @author: sushizhou
+****************************************************************************/
+int CameraSearchNode(CamOprLHeadPtr L, const char* name, CameraOperationPtr *node)
+{
+    if (L==NULL)
+    {
+        printf("error: list isn't initlized!\r\n");
+        return -1;
+    }
+    else if (L->next==NULL)
+    {
+        printf("info: list is empty");
+        node = NULL;
+        return 2;
+    }
+    CameraOperationPtr temp = L->next;
+    for (uint8_t i = 0; i < L->list_length; i++)
+    {
+        if (strcmp(temp->name,name)==0)//有这个元素
+        {
+            *node=temp;
+            return 0;
+        }
+        else if(temp->next==NULL)
+        {
+            *node=temp;
+            return 1;
+        }
+        temp=temp->next;
+    }
+
+    return -1;//正常情况不会运行到这,上面那个循环就遍历完量表跳出了
 }
