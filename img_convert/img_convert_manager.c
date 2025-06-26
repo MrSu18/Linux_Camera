@@ -161,3 +161,26 @@ int GetImgConvertNode(ImgCvtLHeadPtr L, const char* name,ImgConvertPtr *node)
     return -1;//正常情况不会运行到这,上面那个循环就遍历完量表跳出了
 }
 
+
+FunctionStatus GetVideoConvertForFormats(int pixel_format_in, int pixel_format_out, ImgConvertPtr *node)
+{
+    if (img_convert_head==NULL || img_convert_head->next==NULL)
+    {
+        printf("error: img_convert_list is error!\r\n");
+        return kERROR;
+    }
+    
+	ImgConvertPtr temp = img_convert_head->next;
+	
+	while (temp)
+	{
+        if (ptTmp->isSupport(pixel_format_in, pixel_format_out))
+        {
+            *node=temp;
+            return kSuccess;
+        }
+		temp = temp->next;
+	}
+    *node=NULL;
+	return kSuccess;
+}
