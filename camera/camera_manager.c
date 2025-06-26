@@ -31,7 +31,7 @@ FunctionStatus RegisterCameraOpr(CameraOperation in_camera_opr,const char*name,C
     
     //2. 先查看操作集中是否有需要注册的操作函数,如果有就不需要了
     CameraOperationPtr temp_ptr;
-    int ret = CameraSearchNode(camera_opr_head,name,&temp_ptr);
+    int ret = GetCameraOprNode(camera_opr_head,name,&temp_ptr);
     switch (ret)
     {
     case 0:   //若链表中有这个元素
@@ -118,7 +118,7 @@ FunctionStatus CameraDeviceInit(const char *camera_path,CameraDevicePtr camera_d
 FunctionStatus CameraInit(const char *camera_path)
 {
     //1. 操作集链表初始化
-    camera_opr_head=malloc(sizeof(CamOprLHeadPtr));
+    camera_opr_head=malloc(sizeof(CamOprLHead));
     if (camera_opr_head==NULL)
     {
         printf("error: camera_opr_list init error!\r\n ");
@@ -127,6 +127,7 @@ FunctionStatus CameraInit(const char *camera_path)
     else
     {
         camera_opr_head->list_length=0;
+        camera_opr_head->next=NULL;
     }
     
     //2. 插入现有的操作集
@@ -150,12 +151,12 @@ FunctionStatus CameraInit(const char *camera_path)
 * @brief : 查找元素是否在链表中
 * @param : CamOprLHeadPtr L: 链表表头
 *          const char*name：需要查找的元素
-*          CameraOperationPtr *out_camera_opr: 若找到返回节点地址,否则返回NULL
+*          CameraOperationPtr *node: 若找到返回节点地址,否则返回NULL
 * @return: -1: 链表未初始化 0:链表中有这个元素,返回这个元素节点 1:链表中没这个元素,并且链表的尾部通过节点返回 2:链表为空
 * @date  : 2025.6.25
 * @author: sushizhou
 ****************************************************************************/
-int CameraSearchNode(CamOprLHeadPtr L, const char* name, CameraOperationPtr *node)
+int GetCameraOprNode(CamOprLHeadPtr L, const char* name, CameraOperationPtr *node)
 {
     if (L==NULL)
     {

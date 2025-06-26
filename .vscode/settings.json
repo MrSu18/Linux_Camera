@@ -13,7 +13,8 @@
         "type_traits": "c",
         "su_typedef.h": "c",
         "camera_manager.h": "c",
-        "mman.h": "c"
+        "mman.h": "c",
+        "yuv_to_rgb.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

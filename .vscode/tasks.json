@@ -33,10 +33,13 @@
             [
                 "-I${workspaceFolder}/include",
                 "-g",
+                "-fsanitize=address", //调用asan便于输出更详细的错误信息
                 "-o",
                 "${workspaceFolder}/main.out",
                 "${workspaceFolder}/camera/camera_manager.c",
                 "${workspaceFolder}/camera/v4l2.c",
+                "${workspaceFolder}/img_convert/img_convert_manager.c",
+                "${workspaceFolder}/img_convert/yuv_to_rgb.c",
                 "${workspaceFolder}/main.c",
                 "-pthread"
             ],

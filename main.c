@@ -6,9 +6,9 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <sys/ioctl.h>
-// #include "camera.h"
 #include <pthread.h>
 #include "camera_manager.h"
+#include "img_convert_manager.h"
 
 pthread_mutex_t cam_mutex;//摄像头操作的互斥量
 
@@ -16,11 +16,16 @@ static void *thread_control_camera_brightness (void *args);
 
 int main()
 {
+    //摄像头部分模块初始化
     CameraInit("/dev/video0");
     memset(&camera_usb_buf,0,sizeof(camera_usb_buf));
+    //图像格式转换部分模块初始化
+    ImgConvertInit();
+    //开启摄像头
     camera_main_usb.pt_opr->StartDevice(&camera_main_usb);
     while (1)
     {
+        //采集数据
         if (camera_main_usb.pt_opr->GetFrame(&camera_main_usb,&camera_usb_buf)==kERROR)
         {
             return -1;
@@ -38,8 +43,8 @@ int main()
         fwrite(camera_usb_buf.auc_pixel_datas, 1, camera_usb_buf.total_bytes, fp);
         fclose(fp);
 
+        //存放帧
         camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_usb_buf);
-        
     }
     
     // CameraEnumFmt("/dev/video1");
