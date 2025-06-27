@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "camera_manager.h"
 #include "img_convert_manager.h"
+#include <string.h>
 
 pthread_mutex_t cam_mutex;//摄像头操作的互斥量
 
@@ -16,11 +17,27 @@ static void *thread_control_camera_brightness (void *args);
 
 int main()
 {
+    ImgConvertPtr image_convert_opr;
+
+    CameraBufPtr cur_image;
+    CameraBuf camera_image;
+    memset(&camera_image,0,sizeof(CameraBuf));
+    CameraBuf convert_image;
+    memset(&convert_image,0,sizeof(CameraBuf));
+    convert_image.pixel_format=V4L2_PIX_FMT_RGB565;
+    CameraBuf zoom_image;
+    memset(&zoom_image,0,sizeof(CameraBuf));
+    CameraBuf frame_image;
+    memset(&frame_image,0,sizeof(CameraBuf));
     //摄像头部分模块初始化
     CameraInit("/dev/video0");
     memset(&camera_usb_buf,0,sizeof(camera_usb_buf));
     //图像格式转换部分模块初始化
     ImgConvertInit();
+    if(GetVideoConvertForFormats(camera_main_usb.pixel_format,V4L2_PIX_FMT_RGB565,&image_convert_opr)==kERROR)
+    {
+        return -1;
+    }
     //开启摄像头
     camera_main_usb.pt_opr->StartDevice(&camera_main_usb);
     while (1)
@@ -30,18 +47,33 @@ int main()
         {
             return -1;
         }
-
-        // 处理数据（保存为文件）
-        FILE *fp = fopen("img/frame.jpg", "wb");
+        memcpy(&camera_image,&camera_usb_buf,sizeof(CameraBuf));
+        // 图像格式转换
+        if (image_convert_opr->Convert(&camera_image,&convert_image)==kERROR)
+        {
+            return -1;
+        }
+        
+        FILE *fp = fopen("img/frame.yuv", "wb");
         if (fp == NULL) 
         {
             printf("Failed to open output file\r\n");
             // 即使出错也要把缓冲区重新加入队列
-            camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_usb_buf);
+            camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_image);
             return -1;
         }
-        fwrite(camera_usb_buf.auc_pixel_datas, 1, camera_usb_buf.total_bytes, fp);
+        fwrite(camera_image.auc_pixel_datas, 1, camera_image.total_bytes, fp);
         fclose(fp);
+        FILE *fp2 = fopen("img/frame.rgb", "wb");
+        if (fp2 == NULL) 
+        {
+            printf("Failed to open output file\r\n");
+            // 即使出错也要把缓冲区重新加入队列
+            camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_image);
+            return -1;
+        }
+        fwrite(convert_image.auc_pixel_datas, 1, convert_image.total_bytes, fp2);
+        fclose(fp2);
 
         //存放帧
         camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_usb_buf);

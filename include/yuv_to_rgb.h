@@ -3,6 +3,7 @@
 
 #include "su_typedef.h"
 #include "camera_manager.h"
+#include "color.h"
 
 FunctionStatus isSupportYuv2Rgb (int pixel_format_in, int pixel_format_out);
 FunctionStatus Yuv2RgbConvert (CameraBufPtr img_in, CameraBufPtr img_out);

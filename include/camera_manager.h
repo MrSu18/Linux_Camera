@@ -28,13 +28,13 @@ typedef struct CameraDevice //相机设备(管理硬件)
 //只关注数据层(如像素格式转换,图像处理)
 typedef struct CameraBuf //相机帧数据(管理图像处理)
 {
-    uint32_t width;   /* 宽度: 一行有多少个象素 */
-	uint32_t height;  /* 高度: 一列有多少个象素 */
-	uint32_t bpp;     /* 一个象素用多少位来表示 */
-	uint32_t line_bytes;  /* 一行数据有多少字节 */
-	uint32_t total_bytes; /* 所有字节数 */ 
-	uint8_t  *auc_pixel_datas;  /* 象素数据存储的地方 */
-    uint32_t pixel_format; //像素格式
+    uint32_t width;                /* 宽度: 一行有多少个象素 */
+	uint32_t height;               /* 高度: 一列有多少个象素 */
+	uint32_t bpp;                  /* 每个像素的位数（bits per pixel） */
+	uint32_t line_bytes;           /* 存储一行像素数据需要的字节数 */
+	uint32_t total_bytes;          /* 所有字节数 */ 
+	uint8_t  *auc_pixel_datas;     /* 象素数据存储的地方 */
+    uint32_t pixel_format;         //像素格式
 }CameraBuf,*CameraBufPtr;
 
 typedef struct CameraOperation //摄像头操作集

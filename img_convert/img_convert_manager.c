@@ -47,7 +47,7 @@ FunctionStatus ImgConvertInit()
         printf("error: img_convert_list insert error!\r\n ");
         return kERROR;
     }
-
+    initLut();//初始化一个格式转换的库
     return kSuccess;
 }
 
@@ -138,7 +138,7 @@ int GetImgConvertNode(ImgCvtLHeadPtr L, const char* name,ImgConvertPtr *node)
     }
     else if (L->next==NULL)
     {
-        printf("info: list is empty");
+        printf("info: list is empty\r\n");
         node = NULL;
         return 2;
     }
@@ -174,7 +174,7 @@ FunctionStatus GetVideoConvertForFormats(int pixel_format_in, int pixel_format_o
 	
 	while (temp)
 	{
-        if (ptTmp->isSupport(pixel_format_in, pixel_format_out))
+        if (temp->isSupport(pixel_format_in, pixel_format_out))
         {
             *node=temp;
             return kSuccess;
