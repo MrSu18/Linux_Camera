@@ -6,12 +6,13 @@
         {
             "label": "Build with arm-buildroot-linux-gnueabihf-gcc",
             "type": "shell",
-            // "command": "arm-buildroot-linux-gnueabihf-gcc",
-            "command": "gcc",
+            "command": "arm-buildroot-linux-gnueabihf-gcc",
+            // "command": "gcc",
             "args": 
             [
                 "-I${workspaceFolder}/include",
                 "-I${workspaceFolder}/img_convert",
+                "-I${workspaceFolder}/lcd",
                 "-o",
                 "${workspaceFolder}/main",
                 "${workspaceFolder}/camera/camera_manager.c",
@@ -19,6 +20,7 @@
                 "${workspaceFolder}/img_convert/img_convert_manager.c",
                 "${workspaceFolder}/img_convert/yuv_to_rgb.c",
                 "${workspaceFolder}/img_convert/color.c",
+                "${workspaceFolder}/lcd/dispaly_frame_buffer.c",
                 "${workspaceFolder}/main.c",
                 "-pthread"
             ],
@@ -37,6 +39,7 @@
             [
                 "-I${workspaceFolder}/include",
                 "-I${workspaceFolder}/img_convert",
+                "-I${workspaceFolder}/lcd",
                 "-g",
                 "-fsanitize=address", //调用asan便于输出更详细的错误信息
                 "-o",
@@ -46,6 +49,7 @@
                 "${workspaceFolder}/img_convert/img_convert_manager.c",
                 "${workspaceFolder}/img_convert/yuv_to_rgb.c",
                 "${workspaceFolder}/img_convert/color.c",
+                "${workspaceFolder}/lcd/dispaly_frame_buffer.c",
                 "${workspaceFolder}/main.c",
                 "-pthread"
             ],

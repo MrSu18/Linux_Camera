@@ -174,7 +174,7 @@ FunctionStatus GetVideoConvertForFormats(int pixel_format_in, int pixel_format_o
 	
 	while (temp)
 	{
-        if (temp->isSupport(pixel_format_in, pixel_format_out))
+        if (temp->isSupport(pixel_format_in, pixel_format_out)==kSuccess)
         {
             *node=temp;
             return kSuccess;
