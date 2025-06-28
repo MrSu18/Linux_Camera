@@ -165,7 +165,7 @@ int GetCameraOprNode(CamOprLHeadPtr L, const char* name, CameraOperationPtr *nod
     }
     else if (L->next==NULL)
     {
-        printf("info: list is empty");
+        printf("info: list is empty\r\n");
         node = NULL;
         return 2;
     }

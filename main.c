@@ -10,14 +10,14 @@
 #include "camera_manager.h"
 #include "img_convert_manager.h"
 #include <string.h>
-#include "dispaly_frame_buffer.h"
-#include "color.h"
+#include "lcd_manager.h"
 
 int main()
 {
     ImgConvertPtr image_convert_opr;
 
     CameraBufPtr cur_image;
+    memset(&camera_usb_buf,0,sizeof(camera_usb_buf));
     CameraBuf camera_image;
     memset(&camera_image,0,sizeof(CameraBuf));
     CameraBuf convert_image;
@@ -27,9 +27,9 @@ int main()
     memset(&zoom_image,0,sizeof(CameraBuf));
     CameraBuf frame_image;
     memset(&frame_image,0,sizeof(CameraBuf));
+
     //摄像头部分模块初始化
     CameraInit("/dev/video1");
-    memset(&camera_usb_buf,0,sizeof(camera_usb_buf));
     if (camera_main_usb.pixel_format==V4L2_PIX_FMT_YUYV)
     {
         printf("V4L2_PIX_FMT_YUYV\r\n");
@@ -41,11 +41,9 @@ int main()
     {
         return -1;
     }
-    if (LCDInit("/dev/fb0")==kERROR)
-    {
-        printf("lcd init error!\r\n");
-        return -1;
-    }
+    
+    LcdDisplayInit("/dev/fb0");
+
     //开启摄像头
     camera_main_usb.pt_opr->StartDevice(&camera_main_usb);
     while (1)
@@ -63,8 +61,7 @@ int main()
         {
             return -1;
         }
-        LCDShowPage(convert_image,10,10);
-
+        lcd.opr->ShowPage(convert_image,lcd);
         //存放帧
         camera_main_usb.pt_opr->PutFrame(&camera_main_usb,&camera_usb_buf);
     }

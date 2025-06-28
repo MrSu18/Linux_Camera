@@ -90,7 +90,7 @@ FunctionStatus V4l2InitDevice(const char *camera_path, CameraDevicePtr camera_de
     	printf("error: can't support the format of this device\n");
         goto err_exit;        
     }
-    camera_device->pixel_format = V4L2_PIX_FMT_YUYV;
+    camera_device->pixel_format = V4L2_PIX_FMT_YUYV;//因为只写了YUV2RGB这里先自定义,我这个相机是支持YUV的
     //4. 设置摄像头使用哪种格式 VIDIOC_S_FMT
     uint32_t lcd_width=640,lcd_height=480,lcd_bpp=120;//这里还没写先自定义
     //先获取屏幕的分辨率,设置分辨率跟屏幕一样

@@ -20,7 +20,8 @@
                 "${workspaceFolder}/img_convert/img_convert_manager.c",
                 "${workspaceFolder}/img_convert/yuv_to_rgb.c",
                 "${workspaceFolder}/img_convert/color.c",
-                "${workspaceFolder}/lcd/dispaly_frame_buffer.c",
+                "${workspaceFolder}/lcd/lcd_manager.c",
+                "${workspaceFolder}/lcd/frame_buffer.c",
                 "${workspaceFolder}/main.c",
                 "-pthread"
             ],
@@ -49,7 +50,8 @@
                 "${workspaceFolder}/img_convert/img_convert_manager.c",
                 "${workspaceFolder}/img_convert/yuv_to_rgb.c",
                 "${workspaceFolder}/img_convert/color.c",
-                "${workspaceFolder}/lcd/dispaly_frame_buffer.c",
+                "${workspaceFolder}/lcd/lcd_manager.c",
+                "${workspaceFolder}/lcd/frame_buffer.c",
                 "${workspaceFolder}/main.c",
                 "-pthread"
             ],

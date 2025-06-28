@@ -17,7 +17,9 @@
         "yuv_to_rgb.h": "c",
         "color.h": "c",
         "dispaly_frame_buffer.h": "c",
-        "img_convert_manager.h": "c"
+        "img_convert_manager.h": "c",
+        "frame_buffer.h": "c",
+        "lcd_manager.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
