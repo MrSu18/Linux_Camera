@@ -60,6 +60,12 @@ FunctionStatus FrameBufferInitDevice(const char *device_path, LcdDevicePtr devic
 }
 FunctionStatus FrameBufferExitDevice(LcdDevicePtr device)
 {
+    if (device->framebuffer!=NULL)
+    {
+        munmap(device->framebuffer,device->screen_size);
+        device->framebuffer=NULL;
+    }
+    close(device->fd);
     return kSuccess;
 }
 FunctionStatus FrameBufferShowPixel(uint32_t x,uint32_t y,uint32_t color)

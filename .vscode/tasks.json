@@ -10,7 +10,8 @@
             // "command": "gcc",
             "args": 
             [
-                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/common",
+                "-I${workspaceFolder}/camera",
                 "-I${workspaceFolder}/img_convert",
                 "-I${workspaceFolder}/lcd",
                 "-o",
@@ -38,7 +39,8 @@
             "command": "gcc",
             "args": 
             [
-                "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/common",
+                "-I${workspaceFolder}/camera",
                 "-I${workspaceFolder}/img_convert",
                 "-I${workspaceFolder}/lcd",
                 "-g",
