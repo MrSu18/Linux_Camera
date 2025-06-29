@@ -182,5 +182,5 @@ FunctionStatus GetVideoConvertForFormats(int pixel_format_in, int pixel_format_o
 		temp = temp->next;
 	}
     *node=NULL;
-	return kSuccess;
+	return kERROR;
 }

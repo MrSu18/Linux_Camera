@@ -248,7 +248,7 @@ FunctionStatus V4l2GetFrameForStreaming(CameraDevicePtr camera_device, CameraBuf
         printf("error: Unable to dequeue buffer.\r\n");
     	return -1;
     }
-    printf("Y0=%d,U=%d,Y1=%d,V=%d\r\n",camera_device->mmap_buffers[v4l2_buf.index][0],camera_device->mmap_buffers[v4l2_buf.index][1],camera_device->mmap_buffers[v4l2_buf.index][2],camera_device->mmap_buffers[v4l2_buf.index][3]);
+    // printf("Y0=%d,U=%d,Y1=%d,V=%d\r\n",camera_device->mmap_buffers[v4l2_buf.index][0],camera_device->mmap_buffers[v4l2_buf.index][1],camera_device->mmap_buffers[v4l2_buf.index][2],camera_device->mmap_buffers[v4l2_buf.index][3]);
     camera_device->buf_cur_index=v4l2_buf.index;
     //3. 把缓冲区的数据记录下来到camera_buf中
     camera_buf->pixel_format=camera_device->pixel_format;

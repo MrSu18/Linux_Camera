@@ -131,7 +131,7 @@ FunctionStatus Yuv2RgbConvert (CameraBufPtr img_in, CameraBufPtr img_out)
         }
         // printf("Y0=%d,U=%d,Y1=%d,V=%d\r\n",img_in->auc_pixel_datas[0],img_in->auc_pixel_datas[1],img_in->auc_pixel_datas[2],img_in->auc_pixel_datas[3]);
         Yuv422ToRgb32(img_in->auc_pixel_datas,img_out->auc_pixel_datas,img_in->width,img_in->height);
-        printf("RGB1=(%d,%d,%d),RGB2=(%d,%d,%d)\r\n",img_out->auc_pixel_datas[0],img_out->auc_pixel_datas[1],img_out->auc_pixel_datas[2],img_out->auc_pixel_datas[4],img_out->auc_pixel_datas[5],img_out->auc_pixel_datas[6]);
+        // printf("RGB1=(%d,%d,%d),RGB2=(%d,%d,%d)\r\n",img_out->auc_pixel_datas[0],img_out->auc_pixel_datas[1],img_out->auc_pixel_datas[2],img_out->auc_pixel_datas[4],img_out->auc_pixel_datas[5],img_out->auc_pixel_datas[6]);
         break;
     
     default:

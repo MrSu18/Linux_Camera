@@ -33,6 +33,8 @@ FunctionStatus FrameBufferInitDevice(const char *device_path, LcdDevicePtr devic
     device->height=var.yres;
     device->bpp=var.bits_per_pixel;
     device->screen_size=device->width*device->height*device->bpp/8;
+    device->pixel_format= (device->bpp==16)?V4L2_PIX_FMT_RGB565: \
+                          (device->bpp==32)?V4L2_PIX_FMT_RGB32:0;
     // printf("%d,%d,%d,%d\r\n",device->screen_size,device->width,device->height,device->bpp);
     //3. 内存映射mmap
     uint8_t* fb_base=(uint8_t*)mmap(NULL , device->screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, device->fd, 0);

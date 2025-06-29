@@ -13,6 +13,7 @@ typedef struct LcdDevice
     uint32_t height;
     uint32_t bpp;
     uint32_t screen_size;
+    uint32_t pixel_format;
     uint8_t* framebuffer;
     LcdDisplayPtr opr;
 }LcdDevice,*LcdDevicePtr;
